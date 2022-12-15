@@ -2,8 +2,10 @@ import sys
 import os
 import eyed3
 from tkinter import *
+from tkinter.messagebox import showerror
 from contextlib import redirect_stdout
 import datetime
+import subprocess
 
 with redirect_stdout(open(os.devnull, "w")):
     import pygame
@@ -15,11 +17,14 @@ if getattr(sys, 'frozen', False):
         for i in range(len(sys.argv) - 1):
             playlist.append(sys.argv[i+1])
     except IndexError:
-        playlist[0] = ""
+        showerror("No attributes",
+                  "ZedPlayer has launched without attributes, therefore has nothing to play and will now exit.")
+        sys.exit()
 else:
     truepath = os.getcwd()
-    playlist.append(r"D:\Data\Audio\ATK Songs\ATK - Preza.mp3")
+    playlist.append(r"D:\Data\Audio\ATK Songs\Grindo, Anon, Mando - Dealers, Preza 2.mp3")
     playlist.append(r"D:\Data\Audio\ATK Songs\Grindo, Lil Boxakos - Nigga 2.mp3")
+    playlist.append(r"D:\Data\Audio\ATK Songs\Grindo, Anon - Den Kanoume Xares.mp3")
 
 win = Tk()
 
@@ -35,6 +40,13 @@ def center(query):
 center(win)
 win.configure(bg="#1a1a1a")
 win.title("ZedPlayer Alpha")
+
+try:
+    win.iconbitmap(sys._MEIPASS + "\\incl\\zedplayer.ico")
+    titleimg = PhotoImage(file=sys._MEIPASS + "\\incl\\zedplayer.png")
+except AttributeError:
+    win.iconbitmap(os.getcwd() + "\\incl\\zedplayer.ico")
+    titleimg = PhotoImage(file=os.getcwd() + "\\incl\\zedplayer.png")
 win.resizable(False, False)
 win.protocol("WM_DELETE_WINDOW", lambda: sys.exit())
 
@@ -42,7 +54,7 @@ dvar = DoubleVar()
 vvar = IntVar()
 trackend = 0
 
-title = Label(win, text="ZedPlayer", font="Consolas 21 bold underline", fg="#2c89a0", bg="#1a1a1a")
+imglbl = Label(win, image=titleimg, bg="#1a1a1a")
 playing = Label(win, text="(window not initialized)\n", font="Consolas 12", fg="#ff0000", bg="#1a1a1a")
 
 btnsize = 24
@@ -58,14 +70,14 @@ elapsestr = Label(win, font="Consolas 9", fg="#ffffff", bg="#1a1a1a")
 volume = Scale(win, variable=vvar, from_=100, to=0, orient=VERTICAL, font="Consolas 8",
                troughcolor="#1a1a1a", bg="#247083", fg="#ffffff", border=0)
 
-title.grid(column=0, row=0, columnspan=3)
+imglbl.grid(column=0, row=0, columnspan=3)
 playing.grid(column=0, row=1, columnspan=3)
 stopbtn.grid(column=0, row=2)
 playbtn.grid(column=1, row=2)
 replaybtn.grid(column=2, row=2)
-elapse.grid(column=0, row=4, columnspan=3)
-elapsestr.grid(column=3, row=4, columnspan=1)
-volume.grid(column=3, row=0, rowspan=4)
+elapse.grid(column=0, row=3, columnspan=3)
+elapsestr.grid(column=3, row=3, columnspan=1)
+volume.grid(column=3, row=0, rowspan=3)
 
 pygame.mixer.init()
 mixer = pygame.mixer.music
@@ -73,12 +85,8 @@ musiccontrols = 0
 
 oldset = round((mixer.get_pos() / 1000) + 1)
 offset = 0
-
-
-def setsizes():
-    elapse.config(length=win.winfo_width() - elapsestr.winfo_width() - 8, to=trackend)
-    volume.configure(length=win.winfo_height() - 32)
-    volume.set(int(open(os.getenv('APPDATA') + "\\ZedPlayer\\volume.info", "r").read().strip()))
+canRun = False
+canNotRepeat = True
 
 
 def mplay():
@@ -107,7 +115,7 @@ def mstop():
 
 
 def mseek():
-    global offset, playlist, trackend, song, playingstr
+    global offset, playlist, trackend, song, playingstr, canNotRepeat
     offset = 0
     try:
         mixer.queue(playlist[0])
@@ -124,43 +132,47 @@ def mseek():
             trackend = pygame.mixer.Sound(playlist[0]).get_length()
             playingstr = os.path.basename(playlist[0]).replace(".mp3", "").replace(".wav", "")
             try:
-                if song.title == "":
+                if song.title is None:
                     pass
                 else:
-                    if song.artist == "":
+                    if song.artist is None:
                         playingstr = song.title
                     else:
-                        if song.album == "":
-                            playingstr = str(song.title) + "\nBy: " + song.artist
+                        if song.album is None:
+                            # noinspection PyUnresolvedReferences
+                            playingstr = song.title + "\nBy: " + song.artist
                         else:
-                            playingstr = str(song.title) + "\nBy: " + song.artist + "\nIn: " + song.album
+                            # noinspection PyUnresolvedReferences
+                            playingstr = song.title + "\nBy: " + song.artist + "\nIn: " + song.album
             except AttributeError:
                 pass
             playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
             setsizes()
             playlist.pop(0)
     except IndexError:
-        pass
+        canNotRepeat = False
+        mixer.play()
 
 
 try:
     song = eyed3.load(playlist[0]).tag
 except AttributeError:
     song = ""
+
 if not playlist[0] == "":
     trackend = pygame.mixer.Sound(playlist[0]).get_length()
     playingstr = os.path.basename(playlist[0]).replace(".mp3", "").replace(".wav", "")
     try:
-        if song.title == "":
-            pass
-        else:
-            if song.artist == "":
+        if song.title is not None:
+            if song.artist is None:
                 playingstr = song.title
             else:
-                if song.album == "":
-                    playingstr = str(song.title) + "\nBy: " + song.artist
+                if song.album is None:
+                    # noinspection PyUnresolvedReferences
+                    playingstr = song.title + "\nBy: " + song.artist
                 else:
-                    playingstr = str(song.title) + "\nBy: " + song.artist + "\nIn: " + song.album
+                    # noinspection PyUnresolvedReferences
+                    playingstr = song.title + "\nBy: " + song.artist + "\nIn: " + song.album
     except AttributeError:
         pass
 
@@ -169,15 +181,23 @@ if not playlist[0] == "":
     playbtn.configure(command=mplay)
     stopbtn.configure(command=mstop)
     replaybtn.configure(command=mseek)
-    mixer.play()
     playlist.pop(0)
-    try:
-        mixer.queue(playlist[0])
-    except IndexError:
-        pass
 
-else:
-    playing.configure(text="Error: No file opened\n")
+
+def setsizes():
+    global mixer, canRun
+    elapse.config(length=win.winfo_width() - elapsestr.winfo_width() - 8, to=trackend)
+    if not canRun:
+        volume.configure(length=win.winfo_height() - 32)
+        volume.set(int(open(os.getenv('APPDATA') + "\\ZedPlayer\\volume.info", "r").read().strip()))
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        subprocess.call("taskkill /f /pid " + open(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old", "r").read().strip(),
+                        startupinfo=si)
+        with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old", "w")):
+            print(os.getpid())
+        canRun = True
+        mixer.play()
 
 
 def volumeadj(event):
@@ -189,11 +209,15 @@ def volumeadj(event):
 
 
 def infloop():
-    global trackend, oldset, offset
+    global trackend, oldset, offset, canRun, canNotRepeat
     if elapse.get() == round(trackend):
-        mseek()
+        if canNotRepeat:
+            mseek()
+        else:
+            mstop()
+            mplay()
     elapsestr.configure(text=str(datetime.timedelta(seconds=elapse.get())).split(".")[0])
-    if not oldset == elapse.get() and not elapse.get() == round(trackend):
+    if not oldset == elapse.get() and not elapse.get() == round(trackend) and canRun:
         mixer.set_pos(elapse.get())
         offset += elapse.get() - oldset
     oldset = round(mixer.get_pos() / 1000, 0) + offset
@@ -222,13 +246,27 @@ def backw(event):
 def downw(event):
     with redirect_stdout(open(os.devnull, "w")):
         print(event)
-    volume.set(volume.get() - 5)
+    if not volume.get() < 5:
+        volume.set(volume.get() - 5)
 
 
 def upw(event):
     with redirect_stdout(open(os.devnull, "w")):
         print(event)
-    volume.set(volume.get() + 5)
+    if not volume.get() > 95:
+        volume.set(volume.get() + 5)
+
+
+def onrw(event):
+    global canNotRepeat
+    with redirect_stdout(open(os.devnull, "w")):
+        print(event)
+    if canNotRepeat:
+        canNotRepeat = False
+        playing.configure(text="Now playing: " + playingstr + "\n🔁", fg="#ffffff")
+    else:
+        canNotRepeat = True
+        playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
 
 
 def onspace(event):
@@ -242,12 +280,15 @@ win.bind("<Left>", backw)
 win.bind("<Right>", forw)
 win.bind("<Up>", upw)
 win.bind("<Down>", downw)
+win.bind("r", onrw)
 
 if not os.path.isdir(os.getenv('APPDATA') + "\\ZedPlayer"):
     os.mkdir(os.getenv('APPDATA') + "\\ZedPlayer")
 if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\volume.info"):
     with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\volume.info", "x")):
         print("100")
+if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old"):
+    open(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old", "x")
 
 win.after(500, setsizes)
 volume.configure(command=volumeadj)
