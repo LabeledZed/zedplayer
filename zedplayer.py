@@ -4,7 +4,7 @@ import eyed3
 from tkinter import *
 from tkinter.messagebox import showerror
 from contextlib import redirect_stdout
-import datetime
+from datetime import timedelta
 import subprocess
 
 with redirect_stdout(open(os.devnull, "w")):
@@ -216,7 +216,7 @@ def infloop():
         else:
             mstop()
             mplay()
-    elapsestr.configure(text=str(datetime.timedelta(seconds=elapse.get())).split(".")[0])
+    elapsestr.configure(text=str(timedelta(seconds=elapse.get())).split(".")[0])
     if not oldset == elapse.get() and not elapse.get() == round(trackend) and canRun:
         mixer.set_pos(elapse.get())
         offset += elapse.get() - oldset
