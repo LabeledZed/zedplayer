@@ -41,6 +41,7 @@ win.title("ZedPlayer Alpha")
 isLooping = True
 pausestate = False
 epoch = int(time.time())
+version = "v7-dev"
 
 
 def richpresence():
@@ -56,11 +57,13 @@ def richpresence():
         while isLooping:
             if pausestate:
                 if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
+                    win.title("ZedPlayer " + version)
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerpause',
                                small_text="v7-dev")
                 elif "\nIn:" in playingstr:
+                    win.title("ZedPlayer " + version)
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
@@ -68,6 +71,7 @@ def richpresence():
                                large_text="In: " + playingstr.split("In: ")[1].split("\n")[0],
                                small_text="v7-dev")
                 elif "\nBy:" in playingstr:
+                    win.title("ZedPlayer " + version)
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
@@ -75,12 +79,14 @@ def richpresence():
                                small_text="v7-dev")
             else:
                 if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
+                    win.title(playingstr.split("\n")[0])
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerplay',
                                start=epoch - offset, end=epoch + trackend - offset,
                                small_text="v7-dev")
                 elif "\nIn:" in playingstr:
+                    win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
@@ -89,6 +95,7 @@ def richpresence():
                                start=epoch - offset, end=epoch + trackend - offset,
                                small_text="v7-dev")
                 elif "\nBy:" in playingstr:
+                    win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
