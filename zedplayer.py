@@ -309,14 +309,16 @@ def infloop():
                 vmute = False
             elapse.set((mixer.get_pos() / 1000) + offset)
         else:
-            if not vmute:
-                mixer.set_volume(0)
-                vmute = True
-            try:
-                mixer.set_pos(elapse.get())
-            except pygame.error:
-                pass
-            offset = round(elapse.get()) - mixer.get_pos() / 1000
+            while isClicking:
+                if not vmute:
+                    mixer.set_volume(0)
+                    vmute = True
+                try:
+                    mixer.set_pos(elapse.get())
+                except pygame.error:
+                    pass
+                offset = round(elapse.get()) - mixer.get_pos() / 1000
+                elapsestr.configure(text=str(timedelta(seconds=elapse.get())).split(".")[0])
 
 
 def forw(*args):
