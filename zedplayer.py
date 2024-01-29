@@ -303,22 +303,20 @@ def infloop():
                 mstop()
                 mplay()
         elapsestr.configure(text=str(timedelta(seconds=elapse.get())).split(".")[0])
-        if not canSeek:
-            if not isClicking:
-                if vmute:
-                    mixer.set_volume(volume.get() / 100)
-                    vmute = False
-                elapse.set((mixer.get_pos() / 1000) + offset)
-
-            else:
-                if not vmute:
-                    mixer.set_volume(0)
-                    vmute = True
-                try:
-                    mixer.set_pos(elapse.get())
-                except pygame.error:
-                    pass
-                offset = round(elapse.get()) - mixer.get_pos() / 1000
+        if not canSeek or not isClicking:
+            if vmute:
+                mixer.set_volume(volume.get() / 100)
+                vmute = False
+            elapse.set((mixer.get_pos() / 1000) + offset)
+        else:
+            if not vmute:
+                mixer.set_volume(0)
+                vmute = True
+            try:
+                mixer.set_pos(elapse.get())
+            except pygame.error:
+                pass
+            offset = round(elapse.get()) - mixer.get_pos() / 1000
 
 
 def forw(*args):
@@ -404,7 +402,7 @@ if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old"):
 
 win.after(500, setsizes)
 volume.configure(command=volumeadj)
-elapse.configure(command=seekcheck)
+elapse.bind("<Motion>", seekcheck)
 Thread(target=infloop).start()
 Thread(target=nseekcheck).start()
 win.focus()
