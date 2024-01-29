@@ -56,41 +56,41 @@ def richpresence():
         while isLooping:
             if pausestate:
                 if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                    rpc.update(state="Listening to: " + playingstr.split("\n")[0],
+                    rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerpause',
                                small_text="v7-dev")
                 elif "\nIn:" in playingstr:
-                    rpc.update(state="Listening to: " + playingstr.split("\n")[0],
-                               details="By: " + playingstr.split("By: ")[1].split("\n")[0],
+                    rpc.update(details="Listening to: " + playingstr.split("\n")[0],
+                               state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerpause',
                                large_text="In: " + playingstr.split("In: ")[1].split("\n")[0],
                                small_text="v7-dev")
                 elif "\nBy:" in playingstr:
-                    rpc.update(state="Listening to: " + playingstr.split("\n")[0],
-                               details="By: " + playingstr.split("By: ")[1].split("\n")[0],
+                    rpc.update(details="Listening to: " + playingstr.split("\n")[0],
+                               state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerpause',
                                small_text="v7-dev")
             else:
                 if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                    rpc.update(state="Listening to: " + playingstr.split("\n")[0],
+                    rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerplay',
                                start=epoch - offset, end=epoch + trackend - offset,
                                small_text="v7-dev")
                 elif "\nIn:" in playingstr:
-                    rpc.update(state="Listening to: " + playingstr.split("\n")[0],
-                               details="By: " + playingstr.split("By: ")[1].split("\n")[0],
+                    rpc.update(details="Listening to: " + playingstr.split("\n")[0],
+                               state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerplay',
                                large_text="In: " + playingstr.split("In: ")[1].split("\n")[0],
                                start=epoch - offset, end=epoch + trackend - offset,
                                small_text="v7-dev")
                 elif "\nBy:" in playingstr:
-                    rpc.update(state="Listening to: " + playingstr.split("\n")[0],
-                               details="By: " + playingstr.split("By: ")[1].split("\n")[0],
+                    rpc.update(details="Listening to: " + playingstr.split("\n")[0],
+                               state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerplay',
                                start=epoch - offset, end=epoch + trackend - offset,
