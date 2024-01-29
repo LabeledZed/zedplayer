@@ -404,7 +404,7 @@ if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old"):
 
 win.after(500, setsizes)
 volume.configure(command=volumeadj)
-elapse.bind("<Motion>", seekcheck)
+elapse.configure(command=seekcheck)
 Thread(target=infloop).start()
 Thread(target=nseekcheck).start()
 win.focus()
