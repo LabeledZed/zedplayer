@@ -201,7 +201,7 @@ def mseek():
     try:
         mstop()
         mixer.load(playlist[0])
-        mixer.play()
+        mplay()
         epoch = int(time.time())
         try:
             song = eyed3.load(playlist[0]).tag
@@ -230,7 +230,7 @@ def mseek():
             playlist.pop(0)
     except IndexError:
         canNotRepeat = False
-        mixer.play()
+        mplay()
         epoch = int(time.time())
 
 
