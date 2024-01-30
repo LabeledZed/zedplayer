@@ -57,51 +57,45 @@ def richpresence():
         while isLooping:
             if pausestate:
                 if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                    win.title("ZedPlayer " + version)
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerpause',
-                               small_text="v7-dev")
+                               small_text=version)
                 elif "\nIn:" in playingstr:
-                    win.title("ZedPlayer " + version)
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerpause',
                                large_text="In: " + playingstr.split("In: ")[1].split("\n")[0],
-                               small_text="v7-dev")
+                               small_text=version)
                 elif "\nBy:" in playingstr:
-                    win.title("ZedPlayer " + version)
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerpause',
-                               small_text="v7-dev")
+                               small_text=version)
             else:
                 if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                    win.title(playingstr.split("\n")[0])
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerplay',
                                start=epoch - offset, end=epoch + trackend - offset,
-                               small_text="v7-dev")
+                               small_text=version)
                 elif "\nIn:" in playingstr:
-                    win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerplay',
                                large_text="In: " + playingstr.split("In: ")[1].split("\n")[0],
                                start=epoch - offset, end=epoch + trackend - offset,
-                               small_text="v7-dev")
+                               small_text=version)
                 elif "\nBy:" in playingstr:
-                    win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
                     rpc.update(details="Listening to: " + playingstr.split("\n")[0],
                                state="By: " + playingstr.split("By: ")[1].split("\n")[0],
                                large_image='zedplayer',
                                small_image='zedplayerplay',
                                start=epoch - offset, end=epoch + trackend - offset,
-                               small_text="v7-dev")
+                               small_text=version)
 
 
 def appexit():
@@ -293,7 +287,7 @@ def volumeadj(*args):
 
 
 def infloop():
-    global trackend, offset, canRun, canNotRepeat, isLooping, canSeek, isClicking
+    global trackend, offset, canRun, canNotRepeat, isLooping, canSeek, isClicking, playingstr, version
     vmute = False
     while isLooping:
         if elapse.get() == round(trackend):
@@ -319,6 +313,20 @@ def infloop():
                     pass
                 offset = round(elapse.get()) - mixer.get_pos() / 1000
                 elapsestr.configure(text=str(timedelta(seconds=elapse.get())).split(".")[0])
+        if pausestate:
+            if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
+                win.title("ZedPlayer " + version)
+            elif "\nIn:" in playingstr:
+                win.title("ZedPlayer " + version)
+            elif "\nBy:" in playingstr:
+                win.title("ZedPlayer " + version)
+        else:
+            if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
+                win.title(playingstr.split("\n")[0])
+            elif "\nIn:" in playingstr:
+                win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
+            elif "\nBy:" in playingstr:
+                win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
 
 
 def forw(*args):
@@ -398,7 +406,7 @@ if not os.path.isdir(os.getenv('APPDATA') + "\\ZedPlayer"):
     os.mkdir(os.getenv('APPDATA') + "\\ZedPlayer")
 if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\volume.info"):
     with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\volume.info", "x")):
-        print("100")
+        print("20")
 if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old"):
     open(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old", "x")
 
@@ -407,5 +415,5 @@ volume.configure(command=volumeadj)
 elapse.bind("<Motion>", seekcheck)
 Thread(target=infloop).start()
 Thread(target=nseekcheck).start()
-win.focus()
+win.focus_force()
 win.mainloop()
