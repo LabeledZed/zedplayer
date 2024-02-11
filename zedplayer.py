@@ -347,8 +347,11 @@ else:
                 except AttributeError:
                     pass
                 playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
-                win.after(500, setsizes)
-                win.focus_force()
+                elapse.config(length=0, to=0)
+                win.after(3, setsizes)
+                win.after(1, lambda: win.update())
+                win.after(1, lambda: win.update_idletasks())
+                win.after(2, lambda: win.focus_force())
                 nexttrackid += 1
                 prevtrackid += 1
         except IndexError:
@@ -408,8 +411,11 @@ else:
                 except AttributeError:
                     pass
                 playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
-                win.after(500, setsizes)
-                win.focus_force()
+                elapse.config(length=0, to=0)
+                win.after(3, setsizes)
+                win.after(1, lambda: win.update())
+                win.after(1, lambda: win.update_idletasks())
+                win.after(2, lambda: win.focus_force())
                 nexttrackid -= 1
                 prevtrackid -= 1
         except IndexError:
