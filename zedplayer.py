@@ -545,10 +545,14 @@ def snap():
                 thickness = 1
                 lineType = 20
                 currdate = datetime.now().strftime("%d/%m/%Y %H:%M")
-                if not os.path.isdir(reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0]):
-                    os.mkdir(reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0])
-                savepath = reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0] + "\\react-" + \
-                    datetime.now().strftime("%d-%m-%y-%H-%M") + ".png"
+                if "\nBy:" in playingstr:
+                    if not os.path.isdir(reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0]):
+                        os.mkdir(reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0])
+                    savepath = reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0] + "\\react-" + \
+                        datetime.now().strftime("%d-%m-%y-%H-%M") + ".png"
+                else:
+                    savepath = reactdir + "(unnamed artists)\\react-" + \
+                               datetime.now().strftime("%d-%m-%y-%H-%M") + ".png"
 
                 cv2.putText(camimg, currdate,
                             dtloc,
