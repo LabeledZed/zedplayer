@@ -24,6 +24,7 @@ handle = CreateMutex(None, 1, 'ZedPlayerInit')
 if GetLastError() == ERROR_ALREADY_EXISTS:
     playlistalt = []
     stralt = ""
+    seekpass = 0
     if getattr(sys, 'frozen', False):
         truepath = os.path.dirname(sys.executable)
         for i in range(len(sys.argv) - 1):
@@ -35,11 +36,13 @@ if GetLastError() == ERROR_ALREADY_EXISTS:
     for tr in range(len(playlistalt)):
         if playlistalt[tr] not in open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip():
             stralt += playlistalt[tr] + "\n"
+        else:
+            seekpass += 1
     strout = (open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() + "\n" + stralt).strip()
     with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
         try:
             print(strout)
-            if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass"):
+            if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass") and seekpass == 0:
                 open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "x")
         except UnicodeEncodeError:
             pass
@@ -344,7 +347,8 @@ else:
                 except AttributeError:
                     pass
                 playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
-                setsizes()
+                win.after(500, setsizes)
+                win.focus_force()
                 nexttrackid += 1
                 prevtrackid += 1
         except IndexError:
@@ -404,7 +408,8 @@ else:
                 except AttributeError:
                     pass
                 playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
-                setsizes()
+                win.after(500, setsizes)
+                win.focus_force()
                 nexttrackid -= 1
                 prevtrackid -= 1
         except IndexError:
