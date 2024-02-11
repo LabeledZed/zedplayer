@@ -37,9 +37,12 @@ if GetLastError() == ERROR_ALREADY_EXISTS:
             stralt += playlistalt[tr] + "\n"
     strout = (open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() + "\n" + stralt).strip()
     with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
-        print(strout)
-    if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass"):
-        open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "x")
+        try:
+            print(strout)
+            if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass"):
+                open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "x")
+        except UnicodeEncodeError:
+            pass
     os._exit(0)
 
 else:
@@ -50,22 +53,28 @@ else:
             playlist.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
-        playlist.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol - Abra Catabra.mp3")
-        playlist.append(r"D:\Data\Audio\ATK Songs\Grindo - Trelamenh Pipa.mp3")
-
-    if len(playlist) == 0:
-        showerror("No attributes",
-                  "ZedPlayer has launched without attributes, therefore has nothing to play and will now exit.")
-        os._exit(0)
+        playlist.append(r"D:\Data\Audio\Bukoś x XEN - Głupi Świat.mp3")
+        playlist.append(r"D:\Data\Audio\Ego - Frena.mp3")
 
     if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info"):
         with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "x")):
             for tr in range(len(playlist)):
-                print(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() + playlist[tr])
+                try:
+                    print(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() + playlist[tr])
+                except UnicodeEncodeError:
+                    pass
     else:
         with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
             for tr in range(len(playlist)):
-                print(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() + playlist[tr])
+                try:
+                    print(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() + playlist[tr])
+                except UnicodeEncodeError:
+                    pass
+    playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+    if len(playlist) == 0 or playlist[0] == '':
+        showerror("No attributes",
+                  "ZedPlayer has launched without attributes, therefore has nothing to play and will now exit.")
+        os._exit(0)
 
     win = Tk()
 
