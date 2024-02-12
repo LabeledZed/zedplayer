@@ -240,7 +240,7 @@ else:
     stopbtn.grid(column=1, row=3)
     settingsbtn.grid(column=2, row=3)
 
-    pygame.mixer.init()
+    pygame.mixer.init(48000, -16, 2, 2048)
     mixer = pygame.mixer.music
     mixer.set_volume(0)
     musiccontrols = 0
@@ -354,6 +354,7 @@ else:
         currenttrack += 1
         offset = 0
         playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+        canNotRepeat = True
 
         try:
             mstop()
@@ -392,6 +393,7 @@ else:
         currenttrack -= 1
         offset = 0
         playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+        canNotRepeat = True
 
         def lbh():
             global hasChangedTrack, epoch, currenttrack
