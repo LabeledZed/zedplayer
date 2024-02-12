@@ -24,7 +24,7 @@ handle = CreateMutex(None, 1, 'ZedPlayerInit')
 if GetLastError() == ERROR_ALREADY_EXISTS:
     playlistalt = []
     stralt = ""
-    seekpass = 0
+    canpassthrough = True
     if getattr(sys, 'frozen', False):
         truepath = os.path.dirname(sys.executable)
         for i in range(len(sys.argv) - 1):
@@ -34,18 +34,20 @@ if GetLastError() == ERROR_ALREADY_EXISTS:
         playlistalt.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol - Abra Catabra.mp3")
         playlistalt.append(r"D:\Data\Audio\ATK Songs\Grindo - Trelamenh Pipa.mp3")
     for tr in range(len(playlistalt)):
-        if playlistalt[tr] not in open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip():
-            stralt += playlistalt[tr] + "\n"
-        else:
-            seekpass += 1
+        nv = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() \
+            .replace(playlistalt[tr], "")
+        with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
+            print(nv)
+        stralt += playlistalt[tr] + "\n"
     strout = (open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() + "\n" + stralt).strip()
     with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
         try:
             print(strout)
-            if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass") and seekpass == 0:
-                open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "x")
         except UnicodeEncodeError:
-            pass
+            canpassthrough = False
+    if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass") and canpassthrough:
+        with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "x")):
+            print(playlistalt[0])
     os._exit(0)
 
 else:
@@ -56,8 +58,9 @@ else:
             playlist.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
-        playlist.append(r"D:\Data\Audio\Bukoś x XEN - Głupi Świat.mp3")
+        playlist.append(r"D:\Data\Audio\ATK Songs\Cypher - Trelemporas.mp3")
         playlist.append(r"D:\Data\Audio\Ego - Frena.mp3")
+        playlist.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol, Anon, Paulakhs - Fae To Kavlaki.mp3")
 
     if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info"):
         with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "x")):
@@ -110,7 +113,7 @@ else:
 
     camport = int()
     epoch, tempepoch = int(time.time()), 0
-    version = "v9-dev"
+    version = "v10-dev"
     win.title("ZedPlayer " + version)
     reactdir = os.getenv('APPDATA') + "\\ZedPlayer\\ZedPlayer Reactions"
     if not os.path.isdir(reactdir):
@@ -209,13 +212,13 @@ else:
     rewbtn = Button(win, text="⏮", font=("Arial", btnsize),
                     bg="#247083", fg="#ffffff", activebackground="#37abc8", activeforeground="#1a1a1a")
 
-    stopbtn = Button(win, text="⏹", font=("Arial", btnsize-3),
+    stopbtn = Button(win, text="⏹", font=("Arial", btnsize - 3),
                      bg="#247083", fg="#ffffff",
                      activebackground="#37abc8", activeforeground="#1a1a1a")
-    settingsbtn = Button(win, text="⚙", font=("Arial", btnsize-9),
+    settingsbtn = Button(win, text="⚙", font=("Arial", btnsize - 9),
                          bg="#247083", fg="#ffffff", height=1, width=3,
                          activebackground="#37abc8", activeforeground="#1a1a1a")
-    repeatbtn = Button(win, text=u"\U0001F501", font=("Arial", btnsize-9),
+    repeatbtn = Button(win, text=u"\U0001F501", font=("Arial", btnsize - 9),
                        bg="#247083", fg="#ffffff", height=1, width=3,
                        activebackground="#37abc8", activeforeground="#1a1a1a")
 
@@ -311,55 +314,62 @@ else:
             elif "\nBy:" in playingstr:
                 win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
 
+    def updatestr():
+        global trackend, playingstr, song
+        try:
+            song = eyed3.load(playlist[currenttrack]).tag
+        except AttributeError:
+            song = ""
+        if not playlist[0] == "":
+            trackend = pygame.mixer.Sound(playlist[currenttrack]).get_length()
+            playingstr = \
+                os.path.basename(playlist[currenttrack])[:-int(len(os.path.basename(playlist[currenttrack])) -
+                                                               os.path.basename(playlist[currenttrack]).rfind("."))]
+            try:
+                if song.title is None:
+                    pass
+                else:
+                    if song.artist is None:
+                        playingstr = song.title
+                    else:
+                        if song.album is None:
+                            # noinspection PyUnresolvedReferences
+                            playingstr = song.title + "\nBy: " + song.artist
+                        else:
+                            # noinspection PyUnresolvedReferences
+                            playingstr = song.title + "\nBy: " + song.artist + "\nIn: " + song.album
+            except AttributeError:
+                pass
+            playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
+            elapse.config(length=0, to=0)
+            win.after(3, setsizes)
+            win.after(1, lambda: win.update())
+            win.after(1, lambda: win.update_idletasks())
+            win.after(2, lambda: win.focus_force())
+
 
     def mseek():
         global offset, canNotRepeat, epoch, pausestate, version, hasChangedTrack
-        global nexttrackid, prevtrackid, playlist, playingstr, song, trackend
+        global currenttrack, playlist, playingstr
+        currenttrack += 1
         offset = 0
         playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+
         try:
             mstop()
-            mixer.load(playlist[nexttrackid])
+            mixer.load(playlist[currenttrack])
             mplay()
             hasChangedTrack = True
             epoch = int(time.time())
-            try:
-                song = eyed3.load(playlist[nexttrackid]).tag
-            except AttributeError:
-                song = ""
-            if not playlist[0] == "":
-                trackend = pygame.mixer.Sound(playlist[nexttrackid]).get_length()
-                playingstr = os.path.basename(playlist[nexttrackid])[:-int(len(os.path.basename(playlist[nexttrackid])) -
-                                                                     os.path.basename(playlist[nexttrackid]).rfind("."))]
-                try:
-                    if song.title is None:
-                        pass
-                    else:
-                        if song.artist is None:
-                            playingstr = song.title
-                        else:
-                            if song.album is None:
-                                # noinspection PyUnresolvedReferences
-                                playingstr = song.title + "\nBy: " + song.artist
-                            else:
-                                # noinspection PyUnresolvedReferences
-                                playingstr = song.title + "\nBy: " + song.artist + "\nIn: " + song.album
-                except AttributeError:
-                    pass
-                playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
-                elapse.config(length=0, to=0)
-                win.after(3, setsizes)
-                win.after(1, lambda: win.update())
-                win.after(1, lambda: win.update_idletasks())
-                win.after(2, lambda: win.focus_force())
-                nexttrackid += 1
-                prevtrackid += 1
+            updatestr()
+
         except IndexError:
-            canNotRepeat = False
-            playing.configure(text="Now playing: " + playingstr + "\n🔁", fg="#ffffff")
+            currenttrack = 0
+            mixer.load(playlist[currenttrack])
             mplay()
             hasChangedTrack = True
             epoch = int(time.time())
+            updatestr()
         if pausestate:
             if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
                 win.title("ZedPlayer " + version)
@@ -378,52 +388,32 @@ else:
 
     def mrew():
         global offset, canNotRepeat, epoch, pausestate, version, hasChangedTrack
-        global nexttrackid, prevtrackid, playlist, playingstr, song, trackend
+        global currenttrack, playlist, playingstr
+        currenttrack -= 1
         offset = 0
         playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+
+        def lbh():
+            global hasChangedTrack, epoch, currenttrack
+            currenttrack = len(playlist) - 1
+            mixer.load(playlist[currenttrack])
+            mplay()
+            hasChangedTrack = True
+            epoch = int(time.time())
+            updatestr()
+
         try:
             mstop()
-            mixer.load(playlist[prevtrackid])
-            mplay()
-            hasChangedTrack = True
-            epoch = int(time.time())
-            try:
-                song = eyed3.load(playlist[prevtrackid]).tag
-            except AttributeError:
-                song = ""
-            if not playlist[0] == "":
-                trackend = pygame.mixer.Sound(playlist[prevtrackid]).get_length()
-                playingstr = os.path.basename(playlist[prevtrackid])[:-int(len(os.path.basename(playlist[prevtrackid])) -
-                                                                     os.path.basename(playlist[prevtrackid]).rfind("."))]
-                try:
-                    if song.title is None:
-                        pass
-                    else:
-                        if song.artist is None:
-                            playingstr = song.title
-                        else:
-                            if song.album is None:
-                                # noinspection PyUnresolvedReferences
-                                playingstr = song.title + "\nBy: " + song.artist
-                            else:
-                                # noinspection PyUnresolvedReferences
-                                playingstr = song.title + "\nBy: " + song.artist + "\nIn: " + song.album
-                except AttributeError:
-                    pass
-                playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
-                elapse.config(length=0, to=0)
-                win.after(3, setsizes)
-                win.after(1, lambda: win.update())
-                win.after(1, lambda: win.update_idletasks())
-                win.after(2, lambda: win.focus_force())
-                nexttrackid -= 1
-                prevtrackid -= 1
+            if currenttrack >= 0:
+                mixer.load(playlist[currenttrack])
+                mplay()
+                hasChangedTrack = True
+                epoch = int(time.time())
+                updatestr()
+            else:
+                lbh()
         except IndexError:
-            canNotRepeat = False
-            playing.configure(text="Now playing: " + playingstr + "\n🔁", fg="#ffffff")
-            mplay()
-            hasChangedTrack = True
-            epoch = int(time.time())
+            lbh()
         if pausestate:
             if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
                 win.title("ZedPlayer " + version)
@@ -465,9 +455,8 @@ else:
             pass
 
         playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
-        mixer.load(playlist[0])
-        nexttrackid = 1
-        prevtrackid = -1
+        currenttrack = 0
+        mixer.load(playlist[currenttrack])
         playbtn.configure(command=mplay)
         stopbtn.configure(command=mstop)
         seekbtn.configure(command=mseek)
@@ -638,8 +627,17 @@ else:
                     mplay()
             elapsestr.configure(text=str(timedelta(seconds=elapse.get())).split(".")[0])
             if os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass"):
+                sindex = int(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+                             .index(open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "r").read().strip())) - \
+                         int(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+                             .index(playlist[currenttrack]))
                 os.remove(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass")
-                mseek()
+                for sd in range(sindex):
+                    mseek()
+                plout = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r") \
+                    .read().strip().replace('\n\n', '\n')
+                with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
+                    print(plout)
             if not canSeek or not isClicking:
                 if vmute:
                     mixer.set_volume(volume.get() / 100)
@@ -662,8 +660,8 @@ else:
     def snap():
         global playingstr, camport, trackend, hasChangedTrack, reactdir, showCamWindow
         while isLooping:
-            if int(trackend)*4 > 80:
-                for m in range(random.randint(80, int(trackend)*4)):
+            if int(trackend) * 4 > 80:
+                for m in range(random.randint(80, int(trackend) * 4)):
                     time.sleep(0.25)
                     if hasChangedTrack:
                         break
@@ -686,14 +684,14 @@ else:
                             if not os.path.isdir(reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0]):
                                 os.mkdir(reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0])
                             savepath = reactdir + "\\" + playingstr.split("By: ")[1].split("\n")[0] + "\\react-" + \
-                                datetime.now().strftime("%d-%m-%y-%H-%M") + ".png"
+                                       datetime.now().strftime("%d-%m-%y-%H-%M") + ".png"
                         except OSError:
                             for char in ['\\', '/', ':', '*', '?', '\"', '<', '>', '|']:
                                 newtempstr = playingstr.split("By: ")[1].split("\n")[0].replace(char, "-")
                             if not os.path.isdir(reactdir + "\\" + newtempstr):
                                 os.mkdir(reactdir + "\\" + newtempstr)
                             savepath = reactdir + "\\" + newtempstr + "\\react-" + \
-                                datetime.now().strftime("%d-%m-%y-%H-%M") + ".png"
+                                       datetime.now().strftime("%d-%m-%y-%H-%M") + ".png"
                     else:
                         savepath = reactdir + "(unnamed artists)\\react-" + \
                                    datetime.now().strftime("%d-%m-%y-%H-%M") + ".png"
