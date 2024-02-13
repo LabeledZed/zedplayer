@@ -98,6 +98,7 @@ else:
     pausestate = False
     hasdiscord = False
     hasChangedTrack = False
+    trackendcondition = False
 
     if not os.path.isdir(os.getenv('APPDATA') + "\\ZedPlayer"):
         os.mkdir(os.getenv('APPDATA') + "\\ZedPlayer")
@@ -473,6 +474,7 @@ else:
             if 0 in get_available_cameras()[0]:
                 Thread(target=snap).start()
             Thread(target=richpresence).start()
+            Thread(target=checktrackend).start()
 
 
     def volumeadj(*args):
@@ -599,13 +601,23 @@ else:
                 remfocus()
 
 
+    def checktrackend():
+        global trackendcondition, pausestate, isLooping
+        while isLooping:
+            temppos = (mixer.get_pos() / 1000) + offset
+            time.sleep(0.5)
+            if temppos == (mixer.get_pos() / 1000) + offset and not pausestate and not canSeek and not isClicking:
+                trackendcondition = True
+
+
     def infloop():
         global trackend, offset, canRun, canNotRepeat, isLooping, canSeek, isClicking, \
-            hasChangedTrack, currenttrack, playlist
+            hasChangedTrack, currenttrack, playlist, trackendcondition
         vmute = False
         while isLooping:
             time.sleep(0.00001)
-            if int((mixer.get_pos() / 1000) + offset) == int(trackend):
+            if trackendcondition:
+                trackendcondition = False
                 if canNotRepeat:
                     mseek()
                 else:
