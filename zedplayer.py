@@ -31,8 +31,6 @@ if GetLastError() == ERROR_ALREADY_EXISTS:
             playlistalt.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
-        playlistalt.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol - Abra Catabra.mp3")
-        playlistalt.append(r"D:\Data\Audio\ATK Songs\Grindo - Trelamenh Pipa.mp3")
     for tr in range(len(playlistalt)):
         nv = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() \
             .replace(playlistalt[tr], "")
@@ -58,8 +56,6 @@ else:
             playlist.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
-        playlist.append(r"D:\Data\Audio\Ego - Frena.mp3")
-        playlist.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol, Anon, Paulakhs - Fae To Kavlaki.mp3")
 
     if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info"):
         with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "x")):
