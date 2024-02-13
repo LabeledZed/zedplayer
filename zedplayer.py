@@ -58,7 +58,6 @@ else:
             playlist.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
-        playlist.append(r"D:\Data\Audio\ATK Songs\Cypher - Trelemporas.mp3")
         playlist.append(r"D:\Data\Audio\Ego - Frena.mp3")
         playlist.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol, Anon, Paulakhs - Fae To Kavlaki.mp3")
 
@@ -602,7 +601,7 @@ else:
         vmute = False
         while isLooping:
             time.sleep(0.00001)
-            if elapse.get() == round(trackend):
+            if int((mixer.get_pos() / 1000) + offset) == int(trackend):
                 if canNotRepeat:
                     mseek()
                 else:
