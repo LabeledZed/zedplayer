@@ -31,6 +31,8 @@ if GetLastError() == ERROR_ALREADY_EXISTS:
             playlistalt.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
+        playlistalt.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol - Abra Catabra.mp3")
+        playlistalt.append(r"D:\Data\Audio\ATK Songs\Grindo - Trelamenh Pipa.mp3")
     for tr in range(len(playlistalt)):
         nv = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() \
             .replace(playlistalt[tr], "")
@@ -56,6 +58,8 @@ else:
             playlist.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
+        playlist.append(r"D:\Data\Audio\Ego - Frena.mp3")
+        playlist.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol, Anon, Paulakhs - Fae To Kavlaki.mp3")
 
     if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info"):
         with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "x")):
@@ -117,7 +121,6 @@ else:
 
     def richpresence():
         global pausestate, playingstr, epoch, isLooping, hasdiscord
-        time.sleep(0.00001)
         try:
             if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\usediscord.pass"):
                 rpc = Presence(1094371000029806592)
@@ -130,6 +133,7 @@ else:
             rpc = None
         if hasdiscord:
             while isLooping and hasdiscord:
+                time.sleep(0.00001)
                 try:
                     if pausestate:
                         if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
@@ -609,20 +613,24 @@ else:
                     mplay()
             elapsestr.configure(text=str(timedelta(seconds=elapse.get())).split(".")[0])
             if os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass"):
-                playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
-                sindex = int(playlist.index(open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "r").read().strip()))
-                os.remove(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass")
-                mstop()
-                mixer.load(playlist[sindex])
-                mplay()
-                currenttrack = sindex
-                updatestr()
-                plout = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r") \
-                    .read().strip().replace('\n\n', '\n')
-                with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
-                    print(plout)
-                win.after(2, lambda: win.attributes('-topmost', 1))
-                win.after(3, lambda: win.attributes('-topmost', 0))
+                try:
+                    playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+                    sindex = int(playlist.index(open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "r")
+                                                .read().strip()))
+                    os.remove(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass")
+                    mstop()
+                    mixer.load(playlist[sindex])
+                    mplay()
+                    currenttrack = sindex
+                    updatestr()
+                    plout = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r") \
+                        .read().strip().replace('\n\n', '\n')
+                    with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
+                        print(plout)
+                    win.after(2, lambda: win.attributes('-topmost', 1))
+                    win.after(3, lambda: win.attributes('-topmost', 0))
+                except ValueError:
+                    os.remove(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass")
             if not canSeek or not isClicking:
                 if vmute:
                     mixer.set_volume(volume.get() / 100)
