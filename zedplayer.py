@@ -119,7 +119,7 @@ else:
         global pausestate, playingstr, epoch, isLooping, hasdiscord
         time.sleep(0.00001)
         try:
-            if os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\usediscord.pass"):
+            if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\usediscord.pass"):
                 rpc = Presence(1094371000029806592)
                 hasdiscord = True
                 rpc.connect()
