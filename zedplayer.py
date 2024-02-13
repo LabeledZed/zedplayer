@@ -124,13 +124,15 @@ else:
         global pausestate, playingstr, epoch, isLooping, hasdiscord
         time.sleep(0.00001)
         try:
-            rpc = Presence(1094371000029806592)
-            hasdiscord = True
-            rpc.connect()
-            print("RPC Connected")
+            if os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\usediscord.pass"):
+                rpc = Presence(1094371000029806592)
+                hasdiscord = True
+                rpc.connect()
+                print("RPC Connected")
+            else:
+                rpc = None
         except pypresence.exceptions.DiscordNotFound:
             rpc = None
-            hasdiscord = False
         if hasdiscord:
             while isLooping and hasdiscord:
                 try:
@@ -177,7 +179,7 @@ else:
                                        small_text=version)
                 except pypresence.exceptions.ServerError:
                     pass
-        rpc.close()
+            rpc.close()
 
 
     def appexit():
@@ -315,7 +317,7 @@ else:
                 win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
 
     def updatestr():
-        global trackend, playingstr, song
+        global trackend, playingstr, song, epoch
         try:
             song = eyed3.load(playlist[currenttrack]).tag
         except AttributeError:
@@ -341,27 +343,35 @@ else:
             except AttributeError:
                 pass
             playing.configure(text="Now playing: " + playingstr + "\n", fg="#ffffff")
-            elapse.config(length=0, to=0)
-            win.after(3, setsizes)
-            win.after(1, lambda: win.update())
-            win.after(1, lambda: win.update_idletasks())
-            win.after(2, lambda: win.focus_force())
+            if pausestate:
+                if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
+                    win.title("ZedPlayer " + version)
+                elif "\nIn:" in playingstr:
+                    win.title("ZedPlayer " + version)
+                elif "\nBy:" in playingstr:
+                    win.title("ZedPlayer " + version)
+            else:
+                if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
+                    win.title(playingstr.split("\n")[0])
+                elif "\nIn:" in playingstr:
+                    win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
+                elif "\nBy:" in playingstr:
+                    win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
+            setsizes()
 
 
     def mseek():
-        global offset, canNotRepeat, epoch, pausestate, version, hasChangedTrack
+        global offset, canNotRepeat, pausestate, version, hasChangedTrack
         global currenttrack, playlist, playingstr
         currenttrack += 1
         offset = 0
         playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
         canNotRepeat = True
-
         try:
             mstop()
             mixer.load(playlist[currenttrack])
             mplay()
             hasChangedTrack = True
-            epoch = int(time.time())
             updatestr()
 
         except IndexError:
@@ -369,22 +379,7 @@ else:
             mixer.load(playlist[currenttrack])
             mplay()
             hasChangedTrack = True
-            epoch = int(time.time())
             updatestr()
-        if pausestate:
-            if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                win.title("ZedPlayer " + version)
-            elif "\nIn:" in playingstr:
-                win.title("ZedPlayer " + version)
-            elif "\nBy:" in playingstr:
-                win.title("ZedPlayer " + version)
-        else:
-            if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                win.title(playingstr.split("\n")[0])
-            elif "\nIn:" in playingstr:
-                win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
-            elif "\nBy:" in playingstr:
-                win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
 
 
     def mrew():
@@ -396,12 +391,11 @@ else:
         canNotRepeat = True
 
         def lbh():
-            global hasChangedTrack, epoch, currenttrack
+            global hasChangedTrack, currenttrack
             currenttrack = len(playlist) - 1
             mixer.load(playlist[currenttrack])
             mplay()
             hasChangedTrack = True
-            epoch = int(time.time())
             updatestr()
 
         try:
@@ -410,26 +404,11 @@ else:
                 mixer.load(playlist[currenttrack])
                 mplay()
                 hasChangedTrack = True
-                epoch = int(time.time())
                 updatestr()
             else:
                 lbh()
         except IndexError:
             lbh()
-        if pausestate:
-            if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                win.title("ZedPlayer " + version)
-            elif "\nIn:" in playingstr:
-                win.title("ZedPlayer " + version)
-            elif "\nBy:" in playingstr:
-                win.title("ZedPlayer " + version)
-        else:
-            if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                win.title(playingstr.split("\n")[0])
-            elif "\nIn:" in playingstr:
-                win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
-            elif "\nBy:" in playingstr:
-                win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
 
 
     playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
@@ -467,33 +446,34 @@ else:
 
     def setsizes():
         global mixer, canRun, epoch, hasChangedTrack
-        elapse.config(length=win.winfo_width() - elapsestr.winfo_width() - 8, to=trackend)
+        elapse.config(length=0, to=0)
+        volume.configure(length=0)
+        win.update()
+        win.update_idletasks()
+        win.after(1, lambda: elapse.config(length=win.winfo_width() - elapsestr.winfo_width() - 8, to=trackend))
+        win.after(1, lambda: volume.configure(length=win.winfo_height() - 32))
+        epoch = int(time.time())
+        if pausestate:
+            if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
+                win.title("ZedPlayer " + version)
+            elif "\nIn:" in playingstr:
+                win.title("ZedPlayer " + version)
+            elif "\nBy:" in playingstr:
+                win.title("ZedPlayer " + version)
+        else:
+            if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
+                win.title(playingstr.split("\n")[0])
+            elif "\nIn:" in playingstr:
+                win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
+            elif "\nBy:" in playingstr:
+                win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
         if not canRun:
             volume.set(int(open(os.getenv('APPDATA') + "\\ZedPlayer\\volume.info", "r").read().strip()))
-            volume.configure(length=win.winfo_height() - 32)
-            with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\pid.old", "w")):
-                print(os.getpid())
             canRun = True
             mixer.play()
-            win.focus_force()
             if 0 in get_available_cameras()[0]:
                 Thread(target=snap).start()
-            epoch = int(time.time())
             Thread(target=richpresence).start()
-            if pausestate:
-                if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                    win.title("ZedPlayer " + version)
-                elif "\nIn:" in playingstr:
-                    win.title("ZedPlayer " + version)
-                elif "\nBy:" in playingstr:
-                    win.title("ZedPlayer " + version)
-            else:
-                if "\nIn:" not in playingstr and "\nBy:" not in playingstr:
-                    win.title(playingstr.split("\n")[0])
-                elif "\nIn:" in playingstr:
-                    win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
-                elif "\nBy:" in playingstr:
-                    win.title(playingstr.split("By: ")[1].split("\n")[0] + " - " + playingstr.split("\n")[0])
 
 
     def volumeadj(*args):
@@ -617,7 +597,8 @@ else:
 
 
     def infloop():
-        global trackend, offset, canRun, canNotRepeat, isLooping, canSeek, isClicking, hasChangedTrack
+        global trackend, offset, canRun, canNotRepeat, isLooping, canSeek, isClicking, \
+            hasChangedTrack, currenttrack, playlist
         vmute = False
         while isLooping:
             time.sleep(0.00001)
@@ -629,17 +610,20 @@ else:
                     mplay()
             elapsestr.configure(text=str(timedelta(seconds=elapse.get())).split(".")[0])
             if os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass"):
-                sindex = int(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
-                             .index(open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "r").read().strip())) - \
-                         int(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
-                             .index(playlist[currenttrack]))
+                playlist = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip().split('\n')
+                sindex = int(playlist.index(open(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass", "r").read().strip()))
                 os.remove(os.getenv('APPDATA') + "\\ZedPlayer\\mseek.pass")
-                for sd in range(sindex):
-                    mseek()
+                mstop()
+                mixer.load(playlist[sindex])
+                mplay()
+                currenttrack = sindex
+                updatestr()
                 plout = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r") \
                     .read().strip().replace('\n\n', '\n')
                 with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "w")):
                     print(plout)
+                win.after(2, lambda: win.attributes('-topmost', 1))
+                win.after(3, lambda: win.attributes('-topmost', 0))
             if not canSeek or not isClicking:
                 if vmute:
                     mixer.set_volume(volume.get() / 100)
@@ -865,4 +849,6 @@ else:
     elapse.bind("<Motion>", seekcheck)
     Thread(target=infloop).start()
     Thread(target=nseekcheck).start()
+    win.after(2, lambda: win.attributes('-topmost', 1))
+    win.after(3, lambda: win.attributes('-topmost', 0))
     win.mainloop()
