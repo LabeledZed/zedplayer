@@ -516,8 +516,12 @@ else:
                 global hasdiscord
                 if usediscord.get() == 0:
                     hasdiscord = False
+                    if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\usediscord.pass"):
+                        open(os.getenv('APPDATA') + "\\ZedPlayer\\usediscord.pass", "x")
                 else:
                     Thread(target=richpresence).start()
+                    if os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\usediscord.pass"):
+                        os.remove(os.getenv('APPDATA') + "\\ZedPlayer\\usediscord.pass")
 
             def cmdef():
                 global canUseCamera
