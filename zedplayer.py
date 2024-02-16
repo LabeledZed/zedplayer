@@ -20,6 +20,9 @@ from win32api import GetLastError
 from winerror import ERROR_ALREADY_EXISTS
 
 handle = CreateMutex(None, 1, 'ZedPlayerInit')
+if not os.path.isdir(os.getenv('APPDATA') + "\\ZedPlayer"):
+    os.mkdir(os.getenv('APPDATA') + "\\ZedPlayer")
+
 
 if GetLastError() == ERROR_ALREADY_EXISTS:
     playlistalt = []
@@ -31,6 +34,7 @@ if GetLastError() == ERROR_ALREADY_EXISTS:
             playlistalt.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
+        playlistalt.append(r"D:\Data\Audio\ATK Songs\Grindo, Igol - Abra Catabra.mp3")
     for tr in range(len(playlistalt)):
         nv = open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "r").read().strip() \
             .replace(playlistalt[tr], "")
@@ -56,6 +60,7 @@ else:
             playlist.append(sys.argv[i + 1])
     else:
         truepath = os.getcwd()
+        playlist.append(r"D:\Data\Audio\Ego - Frena.mp3")
 
     if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info"):
         with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "x")):
@@ -77,8 +82,6 @@ else:
                   "ZedPlayer has launched without attributes, therefore has nothing to play and will now exit.")
         os._exit(0)
 
-    win = Tk()
-
 
     def center(query):
         query.update_idletasks()
@@ -88,6 +91,7 @@ else:
         query.geometry("+%d+%d" % (x - 100, y - 100))
 
 
+    win = Tk()
     center(win)
     win.configure(bg="#1a1a1a")
     isLooping = True
@@ -96,8 +100,6 @@ else:
     hasChangedTrack = False
     trackendcondition = False
 
-    if not os.path.isdir(os.getenv('APPDATA') + "\\ZedPlayer"):
-        os.mkdir(os.getenv('APPDATA') + "\\ZedPlayer")
     if os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\usecam.pass"):
         canUseCamera = True
     else:
