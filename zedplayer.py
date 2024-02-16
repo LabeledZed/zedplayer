@@ -20,9 +20,6 @@ from win32api import GetLastError
 from winerror import ERROR_ALREADY_EXISTS
 
 handle = CreateMutex(None, 1, 'ZedPlayerInit')
-if not os.path.isdir(os.getenv('APPDATA') + "\\ZedPlayer"):
-    os.mkdir(os.getenv('APPDATA') + "\\ZedPlayer")
-
 
 if GetLastError() == ERROR_ALREADY_EXISTS:
     playlistalt = []
@@ -61,6 +58,9 @@ else:
     else:
         truepath = os.getcwd()
         playlist.append(r"D:\Data\Audio\Ego - Frena.mp3")
+
+    if not os.path.isdir(os.getenv('APPDATA') + "\\ZedPlayer"):
+        os.mkdir(os.getenv('APPDATA') + "\\ZedPlayer")
 
     if not os.path.isfile(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info"):
         with redirect_stdout(open(os.getenv('APPDATA') + "\\ZedPlayer\\playlist.info", "x")):
